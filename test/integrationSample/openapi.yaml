@@ -9,6 +9,7 @@ paths:
     get:
       security:
         - apiKey: []
+        - session: []
       summary: Greet the user
       x-exegesis-controller: greetController
       operationId: greetGet
@@ -48,3 +49,7 @@ components:
       type: apiKey
       name: apikey
       in: header
+    session:
+      type: apiKey
+      name: session
+      in: cookie

@@ -7,23 +7,32 @@ import * as exegesisExpress from 'exegesis-express';
 import exegesisPassport, { PassportToExegesisRolesFn, PassportToExegesisResult } from '../src';
 import passport from 'passport';
 import ApiKeyStrategy from './ApiKeyStrategy';
+import SessionStrategy from './SessionStrategy';
 
 function withObj(obj : any) {
     return obj ? 'with' : 'without';
 }
 
 async function createServer(withPassport: boolean, converter?: PassportToExegesisRolesFn) {
-    const strategy = new ApiKeyStrategy();
-    passport.use('api-key', strategy);
+    const apiKeyStrategy = new ApiKeyStrategy();
+    const sessionStragegy = new SessionStrategy();
 
-    const authenticator: exegesis.Authenticator = withPassport
+    passport.use('api-key', apiKeyStrategy);
+    passport.use('session', sessionStragegy);
+
+    const apiAuthenticator: exegesis.Authenticator = withPassport
         ? exegesisPassport(passport, 'api-key', converter)
-        : exegesisPassport(strategy, converter);
+        : exegesisPassport(apiKeyStrategy, converter);
+
+    const sessionAuthenticator: exegesis.Authenticator = withPassport
+        ? exegesisPassport(passport, 'session', converter)
+        : exegesisPassport(sessionStragegy, converter);
 
     const options : exegesisExpress.ExegesisOptions = {
         controllers: path.resolve(__dirname, './integrationSample/controllers'),
         authenticators: {
-            apiKey: authenticator
+            apiKey: apiAuthenticator,
+            session: sessionAuthenticator
         },
         controllersPattern: "**/*.ts"
     };
@@ -137,6 +146,15 @@ describe('integration', function() {
                     const fetch = makeFetch(this.server);
                     await fetch(`/whoami`, {headers: {apiKey: 'secret'}})
                         .expect(200, expected);
+                });
+
+                it('should authenticate a call to the API with session strategy', async function() {
+                    // Session strategy does weird things.
+                    const fetch = makeFetch(this.server);
+                    await fetch(`/greet?name=Jason`, {headers: {session: 'jwalton'}})
+                        .expect(200)
+                        .expect('content-type', 'application/json')
+                        .expectBody({greeting: 'Hello, Jason!'});
                 });
 
             });

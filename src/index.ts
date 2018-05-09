@@ -36,6 +36,41 @@ function defaultConverter(user: any) {
 }
 
 /**
+ * Temporarily clears the user.  We call this before every passport
+ * authenticator, because passport's session strategy will just set
+ * req.user and then call `pass()` instead of `success()`.
+ *
+ * @param req - The incoming HTTP request.
+ * @param originalCallback - The original callback.
+ * @returns - A new callback which will restore `req.user` and then call the
+ *   original callback.
+ */
+function clearUser(
+    req: any,
+    originalCallback: exegesis.Callback<exegesis.AuthenticationResult>
+) : exegesis.Callback<exegesis.AuthenticationResult> {
+    const origUser = req.user;
+    req.user = undefined;
+
+    return (err: Error | null | undefined, result?: exegesis.AuthenticationResult) => {
+        req.user = origUser;
+        originalCallback(err, result);
+    };
+}
+
+function generateSuccessResult(
+    pluginContext: exegesis.ExegesisPluginContext,
+    converter: PassportToExegesisRolesFn,
+    user: any
+) {
+    const result : exegesis.AuthenticationSuccess = Object.assign(
+        {type: 'success'} as {type: 'success'},
+        converter(user, pluginContext)
+    );
+    return result;
+}
+
+/**
  * Create a new Exegesis authenticator from a passport instance.
  *
  * @param passport - The passport instance to call into.  This should be installed
@@ -56,15 +91,28 @@ function makePassportAuthenticator(
         pluginContext: exegesis.ExegesisPluginContext,
         done
     ) {
+        const req: any = pluginContext.req;
+
+        const origDone = clearUser(req, done);
+        done = (err: Error | null | undefined, result?: exegesis.AuthenticationResult) => {
+            if(err) {
+                origDone(err);
+            } else if((!result || (result && result.type === 'fail')) && req.user) {
+                // Passport didn't give us a user, but it did set req.user.
+                // The session middleware does this.
+                origDone(null, generateSuccessResult(pluginContext, converter, req.user));
+            } else {
+                origDone(err, result);
+            }
+        };
+
         passport.authorize(strategyName, (err, user, challenge, status) => {
             if(err) {
                 done(err);
+
             } else if(user) {
-                const result : exegesis.AuthenticationSuccess = Object.assign(
-                    {type: 'success'} as {type: 'success'},
-                    converter(user, pluginContext)
-                );
-                done(null, result);
+                done(null, generateSuccessResult(pluginContext, converter, user));
+
             } else {
                 const result : exegesis.AuthenticationFailure = {
                     type: 'fail',
@@ -101,6 +149,9 @@ function makeStrategyRunner(
         pluginContext: exegesis.ExegesisPluginContext,
         done
     ) {
+        const req: any = pluginContext.req;
+        done = clearUser(req, done);
+
         runStrategy(strategy, pluginContext.req, (err, result) => {
             if(err || !result) {
                 return done(err);
@@ -108,15 +159,17 @@ function makeStrategyRunner(
 
             switch(result.type) {
                 case 'success': {
-                    const answer : exegesis.AuthenticationSuccess = Object.assign(
-                        {type: 'success'} as {type: 'success'},
-                        converter(result.user, pluginContext)
-                    );
-                    done(null, answer);
+                    done(null, generateSuccessResult(pluginContext, converter, result.user));
                     break;
                 }
                 case 'pass':
-                    done(null, undefined);
+                    if(req.user) {
+                        // Passport didn't give us a user, but it did set req.user.
+                        // The session middleware does this.
+                        done(null, generateSuccessResult(pluginContext, converter, req.user));
+                    } else {
+                        done(null, undefined);
+                    }
                     break;
                 case 'fail':
                     done(null, result);
