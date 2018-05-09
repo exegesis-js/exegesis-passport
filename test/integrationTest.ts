@@ -4,7 +4,7 @@ import * as path from 'path';
 import { makeFetch } from 'supertest-fetch';
 import * as exegesis from 'exegesis';
 import * as exegesisExpress from 'exegesis-express';
-import exegesisPassport, { PassportToExegesisRolesFn } from '../src';
+import exegesisPassport, { PassportToExegesisRolesFn, PassportToExegesisResult } from '../src';
 import passport from 'passport';
 import ApiKeyStrategy from './ApiKeyStrategy';
 
@@ -51,7 +51,7 @@ async function createServer(withPassport: boolean, converter?: PassportToExegesi
     return http.createServer(app);
 }
 
-function converterFn(user: any) {
+function converterFn(user: any) : PassportToExegesisResult {
     return {
         user: user,
         roles: ['a'],
@@ -118,6 +118,7 @@ describe('integration', function() {
                     const expectedUser = {username: 'jwalton', roles: ['role1']};
                     const expectedWithoutConverter = {
                         apiKey: {
+                            type: 'success',
                             user: expectedUser,
                             roles: ['role1']
                         }
@@ -125,6 +126,7 @@ describe('integration', function() {
 
                     const expectedWithConverter = {
                         apiKey: {
+                            type: 'success',
                             user: expectedUser,
                             roles: ['a'],
                             scopes: ['b']

@@ -61,8 +61,8 @@
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.1",
-    "exegesis": "^0.2.4",
-    "exegesis-express": "^0.2.0",
+    "exegesis": "^0.3.1",
+    "exegesis-express": "^0.2.1",
     "express": "^4.16.3",
     "husky": "^1.0.0-rc.4",
     "lint-staged": "^7.1.0",
@@ -94,6 +94,6 @@
     "passport-strategy-runner": "^1.0.0"
   },
   "peerDependencies": {
-    "exegesis": "^0.2.4"
+    "exegesis": "^0.3.1"
   }
 }

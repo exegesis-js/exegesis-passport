@@ -7,9 +7,6 @@
 
 ## TODO
 
-* [ ] Enable project in greenkeeper
-* [ ] Enable semantic-release
-
 This package lets you use passport to authenticate requests in Exegesis.
 
 ```js
@@ -56,6 +53,10 @@ async function createServer() {
 Returns an Exegesis authenticator that will authenticate against the given strategyName.
 This will not set the user in the session.
 
+`converter` is a `function(user, pluginContext)` which takes in the user
+authenticated by passport and returns a `{user, roles, scopes}` object for
+Exegesis.
+
 ### exegesisPassport(strategy[, converter])
 
 You can pass a Passport strategy directly to Exegesis to use the strategy without even
@@ -75,4 +76,6 @@ exegesisOptions.authenticators = {
 }
 ```
 
-Copyright 2018 Jason Walton
+`converter` is a `function(user, pluginContext)` which takes in the user
+authenticated by passport and returns a `{user, roles, scopes}` object for
+Exegesis.

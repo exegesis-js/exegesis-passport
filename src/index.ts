@@ -3,11 +3,15 @@ import { Strategy } from 'passport-strategy';
 import * as passport from 'passport';
 import * as exegesis from 'exegesis';
 
+export type PassportToExegesisResult =
+    (Pick<exegesis.AuthenticationSuccess, 'user' | 'roles' | 'scopes'>) |
+    {[prop: string]: any};
+
 export interface PassportToExegesisRolesFn {
     (
         user: any,
         pluginContext: exegesis.ExegesisPluginContext
-    ) : exegesis.ExegesisAuthenticated;
+    ) : PassportToExegesisResult;
 }
 
 function isPassportAuthenticator(obj: any) : obj is passport.Authenticator {
@@ -56,10 +60,23 @@ function makePassportAuthenticator(
             if(err) {
                 done(err);
             } else if(user) {
-                const result = converter(user, pluginContext);
-                if(!result.user) {result.user = user;}
+                const result : exegesis.AuthenticationSuccess = Object.assign(
+                    {type: 'success'} as {type: 'success'},
+                    converter(user, pluginContext)
+                );
                 done(null, result);
             } else {
+                const result : exegesis.AuthenticationFailure = {
+                    type: 'fail',
+                    status
+                };
+
+                if(challenge && isString(challenge)) {
+                    result.challenge = challenge;
+                } else if(challenge && challenge.message) {
+                    result.message = challenge.message;
+                }
+
                 done(null, {type: 'fail', challenge, status});
             }
         })(pluginContext.req, pluginContext.origRes, done);
@@ -91,8 +108,10 @@ function makeStrategyRunner(
 
             switch(result.type) {
                 case 'success': {
-                    const answer = converter(result.user, pluginContext);
-                    if(!answer.user) {answer.user = result.user;}
+                    const answer : exegesis.AuthenticationSuccess = Object.assign(
+                        {type: 'success'} as {type: 'success'},
+                        converter(result.user, pluginContext)
+                    );
                     done(null, answer);
                     break;
                 }
