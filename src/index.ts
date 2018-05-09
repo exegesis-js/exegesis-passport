@@ -1,16 +1,23 @@
 import { runStrategy } from 'passport-strategy-runner';
 import { Strategy } from 'passport-strategy';
 import * as passport from 'passport';
-import * as exegesis from 'exegesis';
+import {
+    AuthenticationSuccess,
+    ExegesisPluginContext,
+    AuthenticationResult,
+    Callback,
+    Authenticator,
+    AuthenticationFailure
+} from 'exegesis';
 
 export type PassportToExegesisResult =
-    (Pick<exegesis.AuthenticationSuccess, 'user' | 'roles' | 'scopes'>) |
+    (Pick<AuthenticationSuccess, 'user' | 'roles' | 'scopes'>) |
     {[prop: string]: any};
 
 export interface PassportToExegesisRolesFn {
     (
         user: any,
-        pluginContext: exegesis.ExegesisPluginContext
+        pluginContext: ExegesisPluginContext
     ) : PassportToExegesisResult;
 }
 
@@ -47,23 +54,23 @@ function defaultConverter(user: any) {
  */
 function clearUser(
     req: any,
-    originalCallback: exegesis.Callback<exegesis.AuthenticationResult>
-) : exegesis.Callback<exegesis.AuthenticationResult> {
+    originalCallback: Callback<AuthenticationResult>
+) : Callback<AuthenticationResult> {
     const origUser = req.user;
     req.user = undefined;
 
-    return (err: Error | null | undefined, result?: exegesis.AuthenticationResult) => {
+    return (err: Error | null | undefined, result?: AuthenticationResult) => {
         req.user = origUser;
         originalCallback(err, result);
     };
 }
 
 function generateSuccessResult(
-    pluginContext: exegesis.ExegesisPluginContext,
+    pluginContext: ExegesisPluginContext,
     converter: PassportToExegesisRolesFn,
     user: any
 ) {
-    const result : exegesis.AuthenticationSuccess = Object.assign(
+    const result : AuthenticationSuccess = Object.assign(
         {type: 'success'} as {type: 'success'},
         converter(user, pluginContext)
     );
@@ -86,15 +93,15 @@ function makePassportAuthenticator(
     passport: passport.Authenticator,
     strategyName: string,
     converter: PassportToExegesisRolesFn = defaultConverter
-) : exegesis.Authenticator {
+) : Authenticator {
     return function passportAuthenticator(
-        pluginContext: exegesis.ExegesisPluginContext,
+        pluginContext: ExegesisPluginContext,
         done
     ) {
         const req: any = pluginContext.req;
 
         const origDone = clearUser(req, done);
-        done = (err: Error | null | undefined, result?: exegesis.AuthenticationResult) => {
+        done = (err: Error | null | undefined, result?: AuthenticationResult) => {
             if(err) {
                 origDone(err);
             } else if((!result || (result && result.type === 'fail')) && req.user) {
@@ -114,7 +121,7 @@ function makePassportAuthenticator(
                 done(null, generateSuccessResult(pluginContext, converter, user));
 
             } else {
-                const result : exegesis.AuthenticationFailure = {
+                const result : AuthenticationFailure = {
                     type: 'fail',
                     status
                 };
@@ -144,9 +151,9 @@ function makePassportAuthenticator(
 function makeStrategyRunner(
     strategy: Strategy,
     converter: PassportToExegesisRolesFn = defaultConverter
-) : exegesis.Authenticator {
+) : Authenticator {
     return function passportStrategyAuthenticator(
-        pluginContext: exegesis.ExegesisPluginContext,
+        pluginContext: ExegesisPluginContext,
         done
     ) {
         const req: any = pluginContext.req;
@@ -206,7 +213,7 @@ export function exegesisPassport(
     passport: passport.Authenticator,
     strategyName: string,
     converter?: PassportToExegesisRolesFn
-) : exegesis.Authenticator;
+) : Authenticator;
 
 /**
  * Create a new Exegesis authenticator from a passport strategy.
@@ -221,7 +228,7 @@ export function exegesisPassport(
 export function exegesisPassport(
     strategy: Strategy,
     converter?: PassportToExegesisRolesFn
-) : exegesis.Authenticator;
+) : Authenticator;
 
 export function exegesisPassport(
     a: passport.Authenticator | Strategy,
