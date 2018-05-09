@@ -1,0 +1,50 @@
+openapi: "3.0.1"
+info:
+  version: 1.0.0
+  title: Exegesis Integration Test
+  license:
+    name: MIT
+paths:
+  /greet:
+    get:
+      security:
+        - apiKey: []
+      summary: Greet the user
+      x-exegesis-controller: greetController
+      operationId: greetGet
+      parameters:
+        - name: name
+          in: query
+          description: Name of user to greet
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Greet message.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - greeting
+                properties:
+                  greeting: {type: string}
+  /whoami:
+    get:
+      security:
+        - apiKey: []
+      summary: Return security info about the user.
+      x-exegesis-controller: whoamiController
+      operationId: whoami
+      responses:
+        '200':
+          description: Greet message.
+          content:
+            application/json: {}
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      name: apikey
+      in: header
