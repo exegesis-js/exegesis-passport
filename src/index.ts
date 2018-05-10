@@ -29,6 +29,10 @@ function isString(obj: any) : obj is string {
     return typeof(obj) === 'string';
 }
 
+function isConverter(obj: any) : obj is PassportToExegesisRolesFn {
+    return typeof(obj) === 'function';
+}
+
 /* istanbul ignore next */
 function assertNever(x: never): never {
     throw new Error("Unexpected object: " + JSON.stringify(x));
@@ -84,6 +88,7 @@ function generateSuccessResult(
  *   in your middleware chain before exegesis with `app.use(passport.initialize())`.
  * @param strategyName - The name of the passport strategy to use.  This strategy
  *   should be registered with passport with `passport.use(...)`.
+ * @param options - options to pass to strategy.
  * @param converter - A function to convert Passport users into
  *   `{user, roles, scopes}` objects.  If not defined, `user.roles` will be used
  *   as roles, and `user.scopes` will be used as scopes.
@@ -92,6 +97,7 @@ function generateSuccessResult(
 function makePassportAuthenticator(
     passport: passport.Authenticator,
     strategyName: string,
+    options: any,
     converter: PassportToExegesisRolesFn = defaultConverter
 ) : Authenticator {
     return function passportAuthenticator(
@@ -113,7 +119,7 @@ function makePassportAuthenticator(
             }
         };
 
-        passport.authorize(strategyName, (err, user, challenge, status) => {
+        passport.authenticate(strategyName, options, (err, user, challenge, status) => {
             if(err) {
                 done(err);
 
@@ -143,6 +149,7 @@ function makePassportAuthenticator(
  *
  * @param strategy - An instance of a Passport strategy to call.  Passport
  *   does not need to be registered as a middleware for this to work.
+ * @param options - options to pass to strategy.
  * @param converter - A function to convert Passport users into
  *   `{user, roles, scopes}` objects.  If not defined, `user.roles` will be used
  *   as roles, and `user.scopes` will be used as scopes.
@@ -150,6 +157,7 @@ function makePassportAuthenticator(
  */
 function makeStrategyRunner(
     strategy: Strategy,
+    options: any,
     converter: PassportToExegesisRolesFn = defaultConverter
 ) : Authenticator {
     return function passportStrategyAuthenticator(
@@ -159,7 +167,7 @@ function makeStrategyRunner(
         const req: any = pluginContext.req;
         done = clearUser(req, done);
 
-        runStrategy(strategy, pluginContext.req, (err, result) => {
+        runStrategy(strategy, pluginContext.req, options, (err, result) => {
             if(err || !result) {
                 return done(err);
             }
@@ -212,6 +220,7 @@ function makeStrategyRunner(
 export function exegesisPassport(
     passport: passport.Authenticator,
     strategyName: string,
+    options?: any,
     converter?: PassportToExegesisRolesFn
 ) : Authenticator;
 
@@ -220,6 +229,7 @@ export function exegesisPassport(
  *
  * @param strategy - An instance of a Passport strategy to call.  Passport
  *   does not need to be registered as a middleware for this to work.
+ * @param options - Options to pass on to the strategy.
  * @param converter - A function to convert Passport users into
  *   `{user, roles, scopes}` objects.  If not defined, `user.roles` will be used
  *   as roles, and `user.scopes` will be used as scopes.
@@ -227,18 +237,37 @@ export function exegesisPassport(
  */
 export function exegesisPassport(
     strategy: Strategy,
+    options?: any,
     converter?: PassportToExegesisRolesFn
 ) : Authenticator;
 
 export function exegesisPassport(
     a: passport.Authenticator | Strategy,
-    b?: string | PassportToExegesisRolesFn,
-    converter?: PassportToExegesisRolesFn
+    b?: any,
+    c?: any,
+    d?: PassportToExegesisRolesFn
 ) {
+    let options : any;
+    let converter : PassportToExegesisRolesFn | undefined;
+
     if(isPassportAuthenticator(a) && isString(b)) {
-        return makePassportAuthenticator(a, b, converter);
+        if(isConverter(c)) {
+            options = {};
+            converter = c;
+        } else {
+            options = c;
+            converter = d;
+        }
+        return makePassportAuthenticator(a, b, options, converter);
     } else {
-        return makeStrategyRunner(a as Strategy, b as PassportToExegesisRolesFn);
+        options = b;
+        if(isConverter(b)) {
+            options = {};
+            converter = b;
+        } else if(isConverter(c)) {
+            converter = c;
+        }
+        return makeStrategyRunner(a as Strategy, options, converter);
     }
 }
 

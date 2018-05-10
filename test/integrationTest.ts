@@ -5,9 +5,11 @@ import { makeFetch } from 'supertest-fetch';
 import * as exegesis from 'exegesis';
 import * as exegesisExpress from 'exegesis-express';
 import exegesisPassport, { PassportToExegesisRolesFn, PassportToExegesisResult } from '../src';
-import passport from 'passport';
+import { Passport } from 'passport';
 import ApiKeyStrategy from './ApiKeyStrategy';
 import SessionStrategy from './SessionStrategy';
+
+const passport = new Passport();
 
 function withObj(obj : any) {
     return obj ? 'with' : 'without';
