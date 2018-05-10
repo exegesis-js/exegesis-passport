@@ -91,6 +91,6 @@
   "dependencies": {
     "@types/passport": "^0.4.5",
     "@types/passport-strategy": "^0.2.33",
-    "passport-strategy-runner": "^1.0.0"
+    "passport-strategy-runner": "^1.0.1"
   }
 }
