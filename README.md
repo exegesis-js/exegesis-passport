@@ -1,10 +1,9 @@
 # exegesis-passport
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/exegesis-js/exegesis-passport.svg)](https://greenkeeper.io/)
-
 [![NPM version](https://badge.fury.io/js/exegesis-passport.svg)](https://npmjs.org/package/exegesis-passport)
 [![Build Status](https://travis-ci.org/exegesis-js/exegesis-passport.svg)](https://travis-ci.org/exegesis-js/exegesis-passport)
 [![Coverage Status](https://coveralls.io/repos/exegesis-js/exegesis-passport/badge.svg)](https://coveralls.io/r/exegesis-js/exegesis-passport)
+[![Greenkeeper badge](https://badges.greenkeeper.io/exegesis-js/exegesis-passport.svg)](https://greenkeeper.io/)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 This package lets you use passport to authenticate requests in Exegesis.
@@ -12,7 +11,7 @@ This package lets you use passport to authenticate requests in Exegesis.
 ```js
 import passport from 'passport';
 import * as exegesisExpress from 'exegesis-express';
-import exegesisPassport from 'exegesis-passport;
+import exegesisPassport from 'exegesis-passport';
 import { BasicStrategy } from 'passport-http';
 
 passport.use('basic', new BasicStrategy((username, password, done) => {
