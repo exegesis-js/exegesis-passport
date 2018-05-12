@@ -1,5 +1,7 @@
 # exegesis-passport
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/exegesis-js/exegesis-passport.svg)](https://greenkeeper.io/)
+
 [![NPM version](https://badge.fury.io/js/exegesis-passport.svg)](https://npmjs.org/package/exegesis-passport)
 [![Build Status](https://travis-ci.org/exegesis-js/exegesis-passport.svg)](https://travis-ci.org/exegesis-js/exegesis-passport)
 [![Coverage Status](https://coveralls.io/repos/exegesis-js/exegesis-passport/badge.svg)](https://coveralls.io/r/exegesis-js/exegesis-passport)
