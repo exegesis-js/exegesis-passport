@@ -35,7 +35,9 @@ async function createServer() {
                 // Authenticate the "basicAuth" security scheme using passport's 'basic' strategy.
                 basicAuth: exegesisPassport('basic'),
                 // Uses Passport's build-in 'session' strategy.
-                sessionToken: exegesisPassport('session')
+                sessionToken: exegesisPassport('session', {
+                    isPresent: (context) => !!context.req.session
+                })
             }
         }
     ));
@@ -47,19 +49,27 @@ async function createServer() {
 
 ## API
 
-### exegesisPassport(passport, strategyName[[, converter], options])
+### exegesisPassport(passport, strategyName[, options])
 
 Returns an Exegesis authenticator that will authenticate against the given strategyName.
 This will not set the user in the session.
 
-`converter` is a `function(user, pluginContext)` which takes in the user
+`options.converter` is a `function(user, pluginContext)` which takes in the user
 authenticated by passport and returns a `{user, roles, scopes}` object for
 Exegesis.
 
-If `options` if provided, this will be passed to the passport strategy when
-it is run.
+`options.isPresent` is a `function(pluginContext, authInfo)` which returns true
+if the given security credentials are present, and false otherwise.  Passport does
+not distinguish between an authentication attempt which did provide credentials
+and an authentication attempt which provided incorrect credentials, but
+Exegesis does.  If this option is missing, then exgesis-passport will attempt
+to work out of the field is present, but in most cases this will end up with
+exegesis-passport treating missing credentials the same as bad credentials.
 
-### exegesisPassport(strategy[[, converter], options])
+If `options.passportOptions` if provided, this will be passed to the passport
+strategy when it is run.
+
+### exegesisPassport(strategy[, options])
 
 You can pass a Passport strategy directly to Exegesis to use the strategy without even
 having Passport installed:
@@ -78,12 +88,7 @@ exegesisOptions.authenticators = {
 }
 ```
 
-`converter` is a `function(user, pluginContext)` which takes in the user
-authenticated by passport and returns a `{user, roles, scopes}` object for
-Exegesis.
-
-If `options` if provided, this will be passed to the passport strategy when
-it is run.
+`options` are the same as for `exegesisPassport(passport, strategyName[, options])`.
 
 ## Passport
 

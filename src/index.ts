@@ -7,18 +7,32 @@ import {
     AuthenticationResult,
     Callback,
     Authenticator,
-    AuthenticationFailure
+    AuthenticationFailure,
+    AuthenticatorInfo
 } from 'exegesis';
 
 export type PassportToExegesisResult =
-    (Pick<AuthenticationSuccess, 'user' | 'roles' | 'scopes'>) |
+    (Pick<AuthenticationSuccess, 'user' | 'roles' | 'scopes'>) &
     {[prop: string]: any};
 
-export interface PassportToExegesisRolesFn {
+export interface PassportUserToExegesisUserFn {
     (
         user: any,
         pluginContext: ExegesisPluginContext
     ) : PassportToExegesisResult;
+}
+
+export interface IsPresentFn {
+    (
+        pluginContext: ExegesisPluginContext,
+        info: AuthenticatorInfo
+    ) : boolean;
+}
+
+export interface Options {
+    convert?: PassportUserToExegesisUserFn;
+    isPresent?: IsPresentFn;
+    passportOptions?: any;
 }
 
 function isPassportAuthenticator(obj: any) : obj is passport.Authenticator {
@@ -27,10 +41,6 @@ function isPassportAuthenticator(obj: any) : obj is passport.Authenticator {
 
 function isString(obj: any) : obj is string {
     return typeof(obj) === 'string';
-}
-
-function isConverter(obj: any) : obj is PassportToExegesisRolesFn {
-    return typeof(obj) === 'function';
 }
 
 /* istanbul ignore next */
@@ -44,6 +54,25 @@ function defaultConverter(user: any) {
         roles: user.roles,
         scopes: user.scopes
     };
+}
+
+function defaultIsPresent(context: ExegesisPluginContext, info: AuthenticatorInfo) {
+    let answer = true; // Assume worst case.
+
+    if(info.name && info.in === 'header' && !(info.name.toLowerCase() in context.req.headers)) {
+        answer = false;
+    } else if(info.name && info.in === 'query' && !context.req.url!.includes(info.name)) {
+        answer = false;
+    } else if(info.scheme) {
+        const authorization = context.req.headers['authorization'];
+        if(authorization === null || authorization === undefined) {
+            answer = false;
+        } else if(authorization.slice(0, info.scheme.length) !== info.scheme) {
+            answer = false;
+        }
+    }
+
+    return answer;
 }
 
 /**
@@ -71,7 +100,7 @@ function clearUser(
 
 function generateSuccessResult(
     pluginContext: ExegesisPluginContext,
-    converter: PassportToExegesisRolesFn,
+    converter: PassportUserToExegesisUserFn,
     user: any
 ) {
     const result : AuthenticationSuccess = Object.assign(
@@ -79,6 +108,23 @@ function generateSuccessResult(
         converter(user, pluginContext)
     );
     return result;
+}
+
+function getTypeOnFailure(
+    options: Options,
+    pluginContext: ExegesisPluginContext,
+    info: AuthenticatorInfo
+) {
+    let type: 'missing' | 'invalid';
+    if(!options.isPresent) {
+        type = defaultIsPresent(pluginContext, info) ? 'invalid' : 'missing';
+    } else if(!options.isPresent(pluginContext, info)) {
+        type = 'missing';
+    } else {
+        type = 'invalid';
+    }
+
+    return type;
 }
 
 /**
@@ -97,11 +143,12 @@ function generateSuccessResult(
 function makePassportAuthenticator(
     passport: passport.Authenticator,
     strategyName: string,
-    options: any,
-    converter: PassportToExegesisRolesFn = defaultConverter
+    options: Options = {}
 ) : Authenticator {
+    const converter = options.convert || defaultConverter;
     return function passportAuthenticator(
         pluginContext: ExegesisPluginContext,
+        info: AuthenticatorInfo,
         done
     ) {
         const req: any = pluginContext.req;
@@ -110,7 +157,7 @@ function makePassportAuthenticator(
         done = (err: Error | null | undefined, result?: AuthenticationResult) => {
             if(err) {
                 origDone(err);
-            } else if((!result || (result && result.type === 'fail')) && req.user) {
+            } else if(!(result && result.type === 'success') && req.user) {
                 // Passport didn't give us a user, but it did set req.user.
                 // The session middleware does this.
                 origDone(null, generateSuccessResult(pluginContext, converter, req.user));
@@ -119,7 +166,7 @@ function makePassportAuthenticator(
             }
         };
 
-        passport.authenticate(strategyName, options, (err, user, challenge, status) => {
+        passport.authenticate(strategyName, options.passportOptions || {}, (err, user, challenge, status) => {
             if(err) {
                 done(err);
 
@@ -127,10 +174,8 @@ function makePassportAuthenticator(
                 done(null, generateSuccessResult(pluginContext, converter, user));
 
             } else {
-                const result : AuthenticationFailure = {
-                    type: 'fail',
-                    status
-                };
+                const type = getTypeOnFailure(options, pluginContext, info);
+                const result : AuthenticationFailure = { type, status };
 
                 if(challenge && isString(challenge)) {
                     result.challenge = challenge;
@@ -138,7 +183,7 @@ function makePassportAuthenticator(
                     result.message = challenge.message;
                 }
 
-                done(null, {type: 'fail', challenge, status});
+                done(null, result);
             }
         })(pluginContext.req, pluginContext.origRes, done);
     };
@@ -157,17 +202,18 @@ function makePassportAuthenticator(
  */
 function makeStrategyRunner(
     strategy: Strategy,
-    options: any,
-    converter: PassportToExegesisRolesFn = defaultConverter
+    options: Options = {}
 ) : Authenticator {
     return function passportStrategyAuthenticator(
         pluginContext: ExegesisPluginContext,
+        info: AuthenticatorInfo,
         done
     ) {
         const req: any = pluginContext.req;
+        const converter = options.convert || defaultConverter;
         done = clearUser(req, done);
 
-        runStrategy(strategy, pluginContext.req, options, (err, result) => {
+        runStrategy(strategy, pluginContext.req, options.passportOptions, (err, result) => {
             if(err || !result) {
                 return done(err);
             }
@@ -187,7 +233,13 @@ function makeStrategyRunner(
                     }
                     break;
                 case 'fail':
-                    done(null, result);
+                    const answer : AuthenticationFailure = {
+                        type: getTypeOnFailure(options, pluginContext, info),
+                        status: result.status,
+                        challenge: result.challenge,
+                        message: result.message
+                    };
+                    done(null, answer);
                     break;
                 case 'redirect': {
                     const {res} = pluginContext;
@@ -212,16 +264,18 @@ function makeStrategyRunner(
  *   in your middleware chain before exegesis with `app.use(passport.initialize())`.
  * @param strategyName - The name of the passport strategy to use.  This strategy
  *   should be registered with passport with `passport.use(...)`.
- * @param converter - A function to convert Passport users into
+ * @param options.converter - A function to convert Passport users into
  *   `{user, roles, scopes}` objects.  If not defined, `user.roles` will be used
  *   as roles, and `user.scopes` will be used as scopes.
+ * @param options.isPresent - A function to check if the authentication
+ *   scheme was attempted or not.
+ * @param options.passportOptions - Options to pass to the passport strategy.
  * @returns - An Exegesis authenticator.
  */
 export function exegesisPassport(
     passport: passport.Authenticator,
     strategyName: string,
-    options?: any,
-    converter?: PassportToExegesisRolesFn
+    options?: Options
 ) : Authenticator;
 
 /**
@@ -229,45 +283,28 @@ export function exegesisPassport(
  *
  * @param strategy - An instance of a Passport strategy to call.  Passport
  *   does not need to be registered as a middleware for this to work.
- * @param options - Options to pass on to the strategy.
- * @param converter - A function to convert Passport users into
+ * @param options.converter - A function to convert Passport users into
  *   `{user, roles, scopes}` objects.  If not defined, `user.roles` will be used
  *   as roles, and `user.scopes` will be used as scopes.
+ * @param options.isPresent - A function to check if the authentication
+ *   scheme was attempted or not.
+ * @param options.passportOptions - Options to pass to the passport strategy.
  * @returns - An Exegesis authenticator.
  */
 export function exegesisPassport(
     strategy: Strategy,
-    options?: any,
-    converter?: PassportToExegesisRolesFn
+    options?: Options
 ) : Authenticator;
 
 export function exegesisPassport(
     a: passport.Authenticator | Strategy,
     b?: any,
-    c?: any,
-    d?: PassportToExegesisRolesFn
+    c?: Options
 ) {
-    let options : any;
-    let converter : PassportToExegesisRolesFn | undefined;
-
     if(isPassportAuthenticator(a) && isString(b)) {
-        if(isConverter(c)) {
-            options = {};
-            converter = c;
-        } else {
-            options = c;
-            converter = d;
-        }
-        return makePassportAuthenticator(a, b, options, converter);
+        return makePassportAuthenticator(a, b, c);
     } else {
-        options = b;
-        if(isConverter(b)) {
-            options = {};
-            converter = b;
-        } else if(isConverter(c)) {
-            converter = c;
-        }
-        return makeStrategyRunner(a as Strategy, options, converter);
+        return makeStrategyRunner(a as Strategy, b as Options);
     }
 }
 

@@ -4,7 +4,7 @@ import * as path from 'path';
 import { makeFetch } from 'supertest-fetch';
 import * as exegesis from 'exegesis';
 import * as exegesisExpress from 'exegesis-express';
-import exegesisPassport, { PassportToExegesisRolesFn, PassportToExegesisResult } from '../src';
+import {default as exegesisPassport, PassportUserToExegesisUserFn, PassportToExegesisResult} from '../src';
 import { Passport } from 'passport';
 import ApiKeyStrategy from './ApiKeyStrategy';
 import SessionStrategy from './SessionStrategy';
@@ -15,7 +15,7 @@ function withObj(obj : any) {
     return obj ? 'with' : 'without';
 }
 
-async function createServer(withPassport: boolean, converter?: PassportToExegesisRolesFn) {
+async function createServer(withPassport: boolean, convert?: PassportUserToExegesisUserFn) {
     const apiKeyStrategy = new ApiKeyStrategy();
     const sessionStragegy = new SessionStrategy();
 
@@ -23,12 +23,12 @@ async function createServer(withPassport: boolean, converter?: PassportToExegesi
     passport.use('session', sessionStragegy);
 
     const apiAuthenticator: exegesis.Authenticator = withPassport
-        ? exegesisPassport(passport, 'api-key', converter)
-        : exegesisPassport(apiKeyStrategy, converter);
+        ? exegesisPassport(passport, 'api-key', {convert})
+        : exegesisPassport(apiKeyStrategy, {convert});
 
     const sessionAuthenticator: exegesis.Authenticator = withPassport
-        ? exegesisPassport(passport, 'session', converter)
-        : exegesisPassport(sessionStragegy, converter);
+        ? exegesisPassport(passport, 'session', {convert})
+        : exegesisPassport(sessionStragegy, {convert});
 
     const options : exegesisExpress.ExegesisOptions = {
         controllers: path.resolve(__dirname, './integrationSample/controllers'),
