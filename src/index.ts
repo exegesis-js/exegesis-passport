@@ -64,11 +64,16 @@ function defaultIsPresent(context: ExegesisPluginContext, info: AuthenticatorInf
     } else if(info.name && info.in === 'query' && !context.req.url!.includes(info.name)) {
         answer = false;
     } else if(info.scheme) {
-        const authorization = context.req.headers['authorization'];
+        let authorization = context.req.headers['authorization'];
         if(authorization === null || authorization === undefined) {
             answer = false;
-        } else if(authorization.slice(0, info.scheme.length) !== info.scheme) {
-            answer = false;
+        } else {
+            if(!Array.isArray(authorization)) {
+                authorization = [authorization];
+            }
+            answer = authorization.some(authHeader =>
+                authHeader.slice(0, info.scheme!.length).toLowerCase() === info.scheme!.toLowerCase()
+            );
         }
     }
 

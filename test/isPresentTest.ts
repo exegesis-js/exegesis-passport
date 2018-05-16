@@ -63,21 +63,28 @@ describe('isPresent', function() {
         it('should explicitly detect missing credentials', async function() {
             const authenticator = makeApiKeyAuthenticator({
                 isPresent(pluginContext) {
-                    return !!pluginContext.req.headers.apiKey;
+                    return !!pluginContext.req.headers.apikey;
                 }
             });
 
             const pluginContext : any = {req: {
                 headers: {}
             }};
-
-            const result = await pb.call((done: any) => authenticator(pluginContext, {}, done));
-
-            expect(result).to.eql({
+            const missingResult = await pb.call((done: any) => authenticator(pluginContext, {}, done));
+            expect(missingResult).to.eql({
                 type: 'missing',
                 message: 'Bad key',
                 status: undefined
             });
+
+            pluginContext.req.headers.apikey = 'bad';
+            const invalidResult = await pb.call((done: any) => authenticator(pluginContext, {}, done));
+            expect(invalidResult).to.eql({
+                type: 'invalid',
+                message: 'Bad key',
+                status: undefined
+            });
+
         });
 
         it('should work when `isPresent()` is full of lies', async function() {
@@ -106,20 +113,31 @@ describe('isPresent', function() {
     describe('apiKey', function() {
         it('should auto-detect missing credentials', async function() {
             const authenticator = makeApiKeyAuthenticator();
+
             const pluginContext : any = {req: {
                 headers: {}
             }};
-
-            const result = await pb.call((done: any) => authenticator(pluginContext, {
+            const missingResult = await pb.call((done: any) => authenticator(pluginContext, {
                 in: 'header',
                 name: 'apiKey'
             }, done));
-
-            expect(result).to.eql({
+            expect(missingResult).to.eql({
                 type: 'missing',
                 message: 'Bad key',
                 status: undefined
             });
+
+            pluginContext.req.headers.apikey = 'bad';
+            const invalidResult = await pb.call((done: any) => authenticator(pluginContext, {
+                in: 'header',
+                name: 'apiKey'
+            }, done));
+            expect(invalidResult).to.eql({
+                type: 'invalid',
+                message: 'Bad key',
+                status: undefined
+            });
+
         });
 
         it('should work when auto-detected credentials are there', async function() {
@@ -167,12 +185,47 @@ describe('isPresent', function() {
                 headers: {}
             }};
 
-            const result = await pb.call((done: any) => authenticator(pluginContext, {
+            const missingResult = await pb.call((done: any) => authenticator(pluginContext, {
                 scheme: 'Basic'
             }, done));
-
-            expect(result).to.eql({
+            expect(missingResult).to.eql({
                 type: 'missing',
+                challenge: 'Basic',
+                status: 401
+            });
+
+            pluginContext.req.headers.authorization = 'Basic bad';
+            const invalidResult = await pb.call((done: any) => authenticator(pluginContext, {
+                scheme: 'Basic'
+            }, done));
+            expect(invalidResult).to.eql({
+                type: 'invalid',
+                challenge: 'Basic',
+                status: 401
+            });
+        });
+
+        it('should treat scheme as case-insensitive', async function() {
+            const authenticator = makeBasicAuthAuthenticator();
+            const pluginContext : any = {req: {
+                headers: {}
+            }};
+
+            const missingResult = await pb.call((done: any) => authenticator(pluginContext, {
+                scheme: 'basic'
+            }, done));
+            expect(missingResult).to.eql({
+                type: 'missing',
+                challenge: 'Basic',
+                status: 401
+            });
+
+            pluginContext.req.headers.authorization = 'BASIC foo';
+            const invalidResult = await pb.call((done: any) => authenticator(pluginContext, {
+                scheme: 'basic'
+            }, done));
+            expect(invalidResult).to.eql({
+                type: 'invalid',
                 challenge: 'Basic',
                 status: 401
             });
