@@ -65,15 +65,18 @@ function defaultIsPresent(context: ExegesisPluginContext, info: AuthenticatorInf
         answer = false;
     } else if(info.scheme) {
         let authorization = context.req.headers['authorization'];
+        const scheme = info.scheme.toLowerCase();
         if(authorization === null || authorization === undefined) {
             answer = false;
         } else {
             if(!Array.isArray(authorization)) {
                 authorization = [authorization];
             }
-            answer = authorization.some(authHeader =>
-                authHeader.slice(0, info.scheme!.length).toLowerCase() === info.scheme!.toLowerCase()
-            );
+            answer = authorization.some(authHeader => {
+                const normalizedHeader = authHeader.toLowerCase();
+                return normalizedHeader === scheme ||
+                    normalizedHeader.startsWith(`${scheme} `);
+            });
         }
     }
 
