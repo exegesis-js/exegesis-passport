@@ -10,7 +10,6 @@ import {default as exegesisPassport, Options} from '../src';
 class ApiKeyStrategy extends Strategy {
     constructor() {
         super();
-        this.name = 'apiKey';
     }
 
     authenticate(req: http.IncomingMessage) {
@@ -35,7 +34,6 @@ function makeApiKeyAuthenticator(opts: Options = {}) {
 class BasicAuthStrategy extends Strategy {
     constructor() {
         super();
-        this.name = 'basic';
     }
 
     authenticate(req: http.IncomingMessage) {

@@ -56,27 +56,27 @@
   },
   "devDependencies": {
     "@jwalton/semantic-release-config": "^1.0.0",
-    "@types/chai": "^4.1.3",
-    "@types/mocha": "^5.2.0",
-    "@types/node": "^6.0.110",
-    "chai": "^4.1.2",
-    "coveralls": "^3.0.1",
-    "exegesis": "^1.0.0-rc0",
-    "exegesis-express": "^1.0.0-rc0",
-    "express": "^4.16.3",
-    "husky": "^1.3.0",
-    "lint-staged": "^8.0.0",
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.6",
+    "@types/node": "^6.14.3",
+    "chai": "^4.2.0",
+    "coveralls": "^3.0.2",
+    "exegesis": "^1.3.0",
+    "exegesis-express": "^1.0.0",
+    "express": "^4.16.4",
+    "husky": "^1.3.1",
+    "lint-staged": "^8.1.4",
     "markdownlint-cli": "^0.13.0",
-    "mocha": "^5.1.1",
-    "nyc": "^13.2.0",
+    "mocha": "^5.2.0",
+    "nyc": "^13.3.0",
     "passport": "^0.4.0",
     "passport-strategy": "^1.0.0",
-    "promise-breaker": "^4.1.11",
-    "semantic-release": "^15.4.1",
-    "supertest-fetch": "^1.0.4",
-    "ts-node": "^7.0.0",
-    "tslint": "^5.10.0",
-    "typescript": "^2.8.3"
+    "promise-breaker": "^4.1.13",
+    "semantic-release": "^15.13.3",
+    "supertest-fetch": "^1.2.2",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.12.1",
+    "typescript": "^2.9.2"
   },
   "husky": {
     "hooks": {
@@ -90,7 +90,7 @@
   },
   "dependencies": {
     "@types/passport": "^1.0.0",
-    "@types/passport-strategy": "^0.2.33",
+    "@types/passport-strategy": "^0.2.35",
     "passport-strategy-runner": "^1.0.2"
   }
 }

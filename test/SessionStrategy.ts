@@ -4,7 +4,6 @@ import http from 'http';
 export default class SessionStrategy extends Strategy {
     constructor() {
         super();
-        this.name = 'session';
     }
 
     authenticate(req: http.IncomingMessage) {

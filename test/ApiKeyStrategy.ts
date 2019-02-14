@@ -6,7 +6,6 @@ import http from 'http';
 export default class ApiKeyStrategy extends Strategy {
     constructor() {
         super();
-        this.name = 'api-key';
     }
 
     authenticate(req: http.IncomingMessage) {

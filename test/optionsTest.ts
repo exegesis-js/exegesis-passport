@@ -10,7 +10,6 @@ import exegesisPassport from '../src';
 class OptionsStrategy extends Strategy {
     constructor() {
         super();
-        this.name = 'options';
     }
 
     authenticate(_req: http.IncomingMessage, options: any) {
