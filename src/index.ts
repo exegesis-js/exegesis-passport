@@ -64,19 +64,13 @@ function defaultIsPresent(context: ExegesisPluginContext, info: AuthenticatorInf
     } else if(info.name && info.in === 'query' && !context.req.url!.includes(info.name)) {
         answer = false;
     } else if(info.scheme) {
-        let authorization = context.req.headers['authorization'];
+        const authorization = context.req.headers['authorization'];
         const scheme = info.scheme.toLowerCase();
         if(authorization === null || authorization === undefined) {
             answer = false;
         } else {
-            if(!Array.isArray(authorization)) {
-                authorization = [authorization];
-            }
-            answer = authorization.some(authHeader => {
-                const normalizedHeader = authHeader.toLowerCase();
-                return normalizedHeader === scheme ||
-                    normalizedHeader.startsWith(`${scheme} `);
-            });
+            const normalizedHeader = authorization.toLowerCase();
+            return normalizedHeader === scheme || normalizedHeader.startsWith(`${scheme} `);
         }
     }
 
