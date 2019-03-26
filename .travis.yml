@@ -13,7 +13,6 @@ install:
   - travis_retry npm install
   - npm install -g greenkeeper-lockfile@1
 before_script:
-  - npm audit
   - greenkeeper-lockfile-update
 after_script:
   # Only the first job will upload the lockfile
