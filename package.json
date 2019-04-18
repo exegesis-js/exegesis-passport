@@ -73,7 +73,7 @@
     "passport-strategy": "^1.0.0",
     "promise-breaker": "^4.1.13",
     "semantic-release": "^15.13.3",
-    "supertest-fetch": "^1.2.2",
+    "supertest-fetch": "^1.2.6",
     "ts-node": "^8.0.3",
     "tslint": "^5.12.1",
     "typescript": "^3.3.4000"
