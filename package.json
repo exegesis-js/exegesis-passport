@@ -74,7 +74,7 @@
     "promise-breaker": "^4.1.13",
     "semantic-release": "^15.13.14",
     "supertest-fetch": "^1.2.6",
-    "ts-node": "^8.0.3",
+    "ts-node": "^8.3.0",
     "tslint": "^5.12.1",
     "typescript": "^3.3.4000"
   },
