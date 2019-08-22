@@ -89,8 +89,8 @@
     ]
   },
   "dependencies": {
-    "@types/passport": "^1.0.0",
+    "@types/passport": "^1.0.1",
     "@types/passport-strategy": "^0.2.35",
-    "passport-strategy-runner": "^1.0.2"
+    "passport-strategy-runner": "^1.0.3"
   }
 }

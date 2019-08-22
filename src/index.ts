@@ -89,8 +89,8 @@ function defaultIsPresent(context: ExegesisPluginContext, info: AuthenticatorInf
  */
 function clearUser(
     req: any,
-    originalCallback: Callback<AuthenticationResult>
-) : Callback<AuthenticationResult> {
+    originalCallback: Callback<AuthenticationResult | undefined>
+) : Callback<AuthenticationResult | undefined> {
     const origUser = req.user;
     req.user = undefined;
 
