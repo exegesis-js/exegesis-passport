@@ -68,7 +68,7 @@
     "lint-staged": "^9.0.0",
     "markdownlint-cli": "^0.18.0",
     "mocha": "^6.1.4",
-    "nyc": "^14.1.1",
+    "nyc": "^15.0.0",
     "passport": "^0.4.0",
     "passport-strategy": "^1.0.0",
     "promise-breaker": "^5.0.0",
