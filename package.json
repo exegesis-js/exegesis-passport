@@ -61,7 +61,7 @@
     "@types/node": "^12.0.2",
     "chai": "^4.2.0",
     "coveralls": "^3.0.2",
-    "exegesis": "^2.0.0",
+    "exegesis": "^2.5.0",
     "exegesis-express": "^2.0.0",
     "express": "^4.16.4",
     "husky": "^4.0.2",
