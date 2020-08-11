@@ -57,7 +57,7 @@
   "devDependencies": {
     "@jwalton/semantic-release-config": "^1.0.0",
     "@types/chai": "^4.1.7",
-    "@types/mocha": "^5.2.6",
+    "@types/mocha": "^8.0.1",
     "@types/node": "^12.0.2",
     "chai": "^4.2.0",
     "coveralls": "^3.0.2",
@@ -67,7 +67,7 @@
     "husky": "^4.0.2",
     "lint-staged": "^10.0.3",
     "markdownlint-cli": "^0.18.0",
-    "mocha": "^6.1.4",
+    "mocha": "^8.1.1",
     "nyc": "^15.0.1",
     "passport": "^0.4.0",
     "passport-strategy": "^1.0.0",
