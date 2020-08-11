@@ -144,7 +144,7 @@ describe('integration', function() {
                         }
                     };
 
-                    const expected = !!converter ? expectedWithConverter : expectedWithoutConverter;
+                    const expected = converter ? expectedWithConverter : expectedWithoutConverter;
                     const fetch = makeFetch(this.server);
                     await fetch(`/whoami`, {headers: {apiKey: 'secret'}})
                         .expect(200, expected);

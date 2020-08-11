@@ -61,7 +61,7 @@ function defaultIsPresent(context: ExegesisPluginContext, info: AuthenticatorInf
 
     if(info.name && info.in === 'header' && !(info.name.toLowerCase() in context.req.headers)) {
         answer = false;
-    } else if(info.name && info.in === 'query' && !context.req.url!.includes(info.name)) {
+    } else if(info.name && info.in === 'query' && !context.req.url?.includes(info.name)) {
         answer = false;
     } else if(info.scheme) {
         const authorization = context.req.headers['authorization'];
@@ -234,7 +234,7 @@ function makeStrategyRunner(
                         done(null, undefined);
                     }
                     break;
-                case 'fail':
+                case 'fail': {
                     const answer : AuthenticationFailure = {
                         type: getTypeOnFailure(options, pluginContext, info),
                         status: result.status,
@@ -243,6 +243,7 @@ function makeStrategyRunner(
                     };
                     done(null, answer);
                     break;
+                }
                 case 'redirect': {
                     const {res} = pluginContext;
                     res.setStatus(result.status)
