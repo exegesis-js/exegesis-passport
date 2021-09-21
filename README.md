@@ -9,41 +9,46 @@
 This package lets you use passport to authenticate requests in Exegesis.
 
 ```js
-import passport from 'passport';
-import * as exegesisExpress from 'exegesis-express';
-import exegesisPassport from 'exegesis-passport';
-import { BasicStrategy } from 'passport-http';
+import passport from "passport";
+import * as exegesisExpress from "exegesis-express";
+import exegesisPassport from "exegesis-passport";
+import { BasicStrategy } from "passport-http";
 
-passport.use('basic', new BasicStrategy((username, password, done) => {
-    if(password === 'secret') {
-        done(null, {user: username});
+passport.use(
+  "basic",
+  new BasicStrategy((username, password, done) => {
+    if (password === "secret") {
+      done(null, { user: username });
     } else {
-        done(null, false);
+      done(null, false);
     }
-}));
+  })
+);
 
 async function createServer() {
-    const app = express();
+  const app = express();
 
-    app.use(passport.initialize());
+  app.use(passport.initialize());
 
-    app.use(await exegesisExpress.middleware(
-        path.resolve(__dirname, './openapi.yaml'),
-        {
-            // Other options go here...
-            authenticators: {
-                // Authenticate the "basicAuth" security scheme using passport's 'basic' strategy.
-                basicAuth: exegesisPassport('basic'),
-                // Uses Passport's build-in 'session' strategy.
-                sessionToken: exegesisPassport('session', {
-                    isPresent: (context) => !!context.req.session
-                })
-            }
-        }
-    ));
+  app.use(
+    await exegesisExpress.middleware(
+      path.resolve(__dirname, "./openapi.yaml"),
+      {
+        // Other options go here...
+        authenticators: {
+          // Authenticate the "basicAuth" security scheme using passport's 'basic' strategy.
+          basicAuth: exegesisPassport("basic"),
+          // Uses Passport's build-in 'session' strategy.
+          sessionToken: exegesisPassport("session", {
+            isPresent: (context) => !!context.req.session,
+          }),
+        },
+      }
+    )
+  );
 
-    const server = http.createServer(app);
-    server.listen(3000);
+  const server = http.createServer(app);
+  server.listen(3000);
 }
 ```
 
@@ -59,10 +64,10 @@ authenticated by passport and returns a `{user, roles, scopes}` object for
 Exegesis.
 
 `options.isPresent` is a `function(pluginContext, authInfo)` which returns true
-if the given security credentials are present, and false otherwise.  Passport does
+if the given security credentials are present, and false otherwise. Passport does
 not distinguish between an authentication attempt which did provide credentials
 and an authentication attempt which provided incorrect credentials, but
-Exegesis does.  If this option is missing, then exgesis-passport will attempt
+Exegesis does. If this option is missing, then exgesis-passport will attempt
 to work out of the field is present, but in most cases this will end up with
 exegesis-passport treating missing credentials the same as bad credentials.
 
@@ -76,20 +81,20 @@ having Passport installed:
 
 ```js
 const basicStrategy = new BasicStrategy((username, password, done) => {
-    if(password === 'secret') {
-        done(null, {user: username});
-    } else {
-        done(null, false);
-    }
+  if (password === "secret") {
+    done(null, { user: username });
+  } else {
+    done(null, false);
+  }
 });
 
 exegesisOptions.authenticators = {
-    basicAuth: exegesisPassport(basicStrategy)
-}
+  basicAuth: exegesisPassport(basicStrategy),
+};
 ```
 
 `options` are the same as for `exegesisPassport(passport, strategyName[, options])`.
 
 ## Passport
 
-Want to learn more about passport?  [API docs here](https://github.com/jwalton/passport-api-docs).
+Want to learn more about passport? [API docs here](https://github.com/jwalton/passport-api-docs).
