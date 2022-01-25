@@ -1,7 +1,7 @@
 # exegesis-passport
 
 [![NPM version](https://badge.fury.io/js/exegesis-passport.svg)](https://npmjs.org/package/exegesis-passport)
-[![Build Status](https://travis-ci.org/exegesis-js/exegesis-passport.svg)](https://travis-ci.org/exegesis-js/exegesis-passport)
+![Build Status](https://github.com/exegesis-js/exegesis-passport/workflows/GitHub%20CI/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/exegesis-js/exegesis-passport/badge.svg)](https://coveralls.io/r/exegesis-js/exegesis-passport)
 [![Greenkeeper badge](https://badges.greenkeeper.io/exegesis-js/exegesis-passport.svg)](https://greenkeeper.io/)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
