@@ -71,7 +71,7 @@
     "passport-strategy": "^1.0.0",
     "prettier": "^2.4.1",
     "pretty-quick": "^3.1.1",
-    "promise-breaker": "^5.0.0",
+    "promise-breaker": "^6.0.0",
     "semantic-release": "^19.0.2",
     "supertest-fetch": "^1.2.6",
     "ts-node": "^10.0.0",
